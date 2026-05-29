@@ -1,0 +1,301 @@
+@model CustomerRequestPortal.Models.CustomerRequest
+@{
+    ViewData["Title"] = "Печать заявки " + Model.RequestNumber;
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8" />
+    <title>Заявка @Model.RequestNumber</title>
+    <style>
+        body {
+            margin: 0;
+            background: #eef2f7;
+            color: #1f2937;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+        }
+
+        .print-actions {
+            max-width: 900px;
+            margin: 20px auto 0;
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .print-actions button,
+        .print-actions a {
+            border: 0;
+            border-radius: 6px;
+            padding: 10px 14px;
+            background: #2c5282;
+            color: #fff;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .document {
+            max-width: 900px;
+            margin: 20px auto;
+            background: #fff;
+            padding: 42px;
+            box-shadow: 0 12px 30px rgba(15, 23, 42, .12);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 3px solid #2c5282;
+            padding-bottom: 18px;
+            margin-bottom: 28px;
+        }
+
+        .brand {
+            font-size: 26px;
+            font-weight: 700;
+            color: #2c5282;
+        }
+
+        .doc-title {
+            text-align: right;
+        }
+
+        h1 {
+            margin: 0 0 8px;
+            font-size: 24px;
+        }
+
+        h2 {
+            margin: 26px 0 12px;
+            font-size: 17px;
+            color: #2c5282;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 16px;
+            page-break-inside: auto;
+        }
+
+        thead {
+            display: table-header-group;
+        }
+
+        tfoot {
+            display: table-footer-group;
+        }
+
+        tr {
+            page-break-inside: avoid;
+            break-inside: avoid;
+        }
+
+        th,
+        td {
+            border: 1px solid #d6dee8;
+            padding: 9px 10px;
+            vertical-align: top;
+        }
+
+        th {
+            background: #f3f6f9;
+            text-align: left;
+        }
+
+        .meta th {
+            width: 28%;
+        }
+
+        .total-row th,
+        .total-row td {
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .status {
+            display: inline-block;
+            border-radius: 999px;
+            padding: 4px 10px;
+            background: #e6f0fb;
+            color: #2c5282;
+            font-weight: 700;
+        }
+
+        .comment-box {
+            border: 1px solid #d6dee8;
+            background: #f8fafc;
+            padding: 12px;
+            min-height: 44px;
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+        }
+
+        .print-section {
+            break-inside: avoid;
+            page-break-inside: avoid;
+        }
+
+        .signatures {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 42px;
+            margin-top: 48px;
+            break-inside: avoid;
+            page-break-inside: avoid;
+        }
+
+        .signature-line {
+            border-top: 1px solid #1f2937;
+            padding-top: 8px;
+            color: #4b5563;
+        }
+
+        @@media print {
+            @@page {
+                size: A4;
+                margin: 14mm;
+            }
+
+            body {
+                background: #fff;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            .print-actions {
+                display: none;
+            }
+
+            .document {
+                margin: 0;
+                max-width: none;
+                box-shadow: none;
+                padding: 0;
+            }
+
+            .header,
+            .meta,
+            .comment-box,
+            .signatures {
+                break-inside: avoid;
+                page-break-inside: avoid;
+            }
+
+            h2 {
+                break-after: avoid;
+                page-break-after: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="print-actions">
+        <a href="/Requests/Details/@Model.Id">Вернуться к заявке</a>
+        <button onclick="window.print()">Печать</button>
+    </div>
+
+    <main class="document">
+        <section class="header">
+            <div>
+                <div class="brand">СтройСклад</div>
+                <div>Система управления клиентскими заявками</div>
+            </div>
+            <div class="doc-title">
+                <h1>Заявка @Model.RequestNumber</h1>
+                <div>Дата формирования: @DateTime.Now.ToString("dd.MM.yyyy HH:mm")</div>
+            </div>
+        </section>
+
+        <section class="print-section">
+            <h2>Информация о заявке</h2>
+            <table class="meta">
+                <tr>
+                    <th>Название</th>
+                    <td>@Model.Title</td>
+                </tr>
+                <tr>
+                    <th>Клиент</th>
+                    <td>@Model.User?.FullName (@Model.User?.Email)</td>
+                </tr>
+                <tr>
+                    <th>Статус</th>
+                    <td><span class="status">@Model.Status</span></td>
+                </tr>
+                <tr>
+                    <th>Исполнитель</th>
+                    <td>@(Model.AssignedExecutor == null ? "Не назначен" : $"{Model.AssignedExecutor.FullName} ({Model.AssignedExecutor.StaffPosition})")</td>
+                </tr>
+                <tr>
+                    <th>Срок исполнения</th>
+                    <td>@(Model.DueDate.HasValue ? Model.DueDate.Value.ToString("dd.MM.yyyy") : "Не указан")</td>
+                </tr>
+                <tr>
+                    <th>Приоритет</th>
+                    <td>@Model.Priority</td>
+                </tr>
+                <tr>
+                    <th>Дата создания</th>
+                    <td>@Model.CreatedAt.ToString("dd.MM.yyyy HH:mm")</td>
+                </tr>
+                @if (Model.CompletedAt.HasValue)
+                {
+                    <tr>
+                        <th>Дата выполнения</th>
+                        <td>@Model.CompletedAt.Value.ToString("dd.MM.yyyy HH:mm")</td>
+                    </tr>
+                }
+            </table>
+        </section>
+
+        <h2>Состав заявки</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Товар</th>
+                    <th>Единица</th>
+                    <th>Количество</th>
+                    <th>Цена</th>
+                    <th>Сумма</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.Items)
+                {
+                    <tr>
+                        <td>@item.Product?.Name</td>
+                        <td>@item.Product?.Unit</td>
+                        <td>@item.Quantity</td>
+                        <td>@item.Price.ToString("N2") ₽</td>
+                        <td>@item.Total.ToString("N2") ₽</td>
+                    </tr>
+                }
+            </tbody>
+            <tfoot>
+                <tr class="total-row">
+                    <th colspan="4">Итого</th>
+                    <td>@Model.TotalAmount.ToString("N2") ₽</td>
+                </tr>
+            </tfoot>
+        </table>
+
+        <section class="print-section">
+            <h2>Описание</h2>
+            <div class="comment-box">@(string.IsNullOrWhiteSpace(Model.Description) ? "Не указано" : Model.Description)</div>
+        </section>
+
+        <section class="print-section">
+            <h2>Комментарий по обработке</h2>
+            <div class="comment-box">@(string.IsNullOrWhiteSpace(Model.ManagerComment) ? "Комментарий отсутствует" : Model.ManagerComment)</div>
+        </section>
+
+        <div class="signatures">
+            <div class="signature-line">Клиент</div>
+            <div class="signature-line">Ответственный сотрудник</div>
+        </div>
+    </main>
+</body>
+</html>

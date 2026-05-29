@@ -1,0 +1,102 @@
+@model IEnumerable<CustomerRequestPortal.Models.Product>
+@{
+    ViewData["Title"] = "Каталог товаров";
+    var categories = ViewBag.Categories as List<string> ?? new List<string>();
+    var currentCategory = ViewBag.Category as string;
+    var currentSort = ViewBag.Sort as string ?? "name";
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title"><i class="fas fa-store"></i> Каталог товаров</h1>
+        <p class="page-subtitle">Подбор строительных материалов по категориям, цене и наличию</p>
+    </div>
+    @if (User.IsInRole(AppRoles.Customer))
+    {
+        <a asp-controller="Requests" asp-action="Create" class="btn btn-primary">
+            <i class="fas fa-plus-circle"></i> Создать заявку
+        </a>
+    }
+</div>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3 align-items-end">
+            <div class="col-lg-5">
+                <label class="form-label">Поиск</label>
+                <input type="text" name="search" value="@ViewBag.Search" class="form-control" placeholder="Название или описание товара" />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Категория</label>
+                <select name="category" class="form-select">
+                    <option value="">Все категории</option>
+                    @foreach (var categoryItem in categories)
+                    {
+                        <option value="@categoryItem" selected="@(currentCategory == categoryItem)">@categoryItem</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Сортировка</label>
+                <select name="sort" class="form-select">
+                    <option value="name" selected="@(currentSort == "name")">По названию</option>
+                    <option value="category" selected="@(currentSort == "category")">По категории</option>
+                    <option value="price_desc" selected="@(currentSort == "price_desc")">Сначала дороже</option>
+                    <option value="price_asc" selected="@(currentSort == "price_asc")">Сначала дешевле</option>
+                    <option value="stock_desc" selected="@(currentSort == "stock_desc")">Больше остатков</option>
+                </select>
+            </div>
+            <div class="col-md-2 d-flex gap-2">
+                <button type="submit" class="btn btn-primary flex-fill">
+                    <i class="fas fa-search"></i> Найти
+                </button>
+                <a asp-action="Catalog" class="btn btn-outline-secondary">
+                    <i class="fas fa-rotate-left"></i>
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="card">
+        <div class="card-body text-center py-5">
+            <i class="fas fa-box-open fa-4x text-muted mb-3"></i>
+            <h4>Товары не найдены</h4>
+            <p class="text-muted mb-0">Попробуйте изменить параметры поиска.</p>
+        </div>
+    </div>
+}
+else
+{
+    <div class="product-grid">
+        @foreach (var item in Model)
+        {
+            <div class="card product-card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start gap-3 mb-2">
+                        <h5 class="mb-0">@item.Name</h5>
+                        <span class="badge bg-secondary">@item.Category</span>
+                    </div>
+                    <p class="text-muted product-description">@item.Description</p>
+                    <div class="product-price">@item.Price.ToString("N2") ₽ / @item.Unit</div>
+                    <div class="mt-3">
+                        @if (item.StockQuantity <= 0)
+                        {
+                            <span class="badge bg-danger">Нет в наличии</span>
+                        }
+                        else if (item.StockQuantity <= 100)
+                        {
+                            <span class="badge bg-warning text-dark">Осталось @item.StockQuantity @item.Unit</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-success">В наличии: @item.StockQuantity @item.Unit</span>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}

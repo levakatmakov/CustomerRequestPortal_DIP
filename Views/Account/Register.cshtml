@@ -1,0 +1,56 @@
+﻿@model CustomerRequestPortal.ViewModels.RegisterViewModel
+@{
+    ViewData["Title"] = "Регистрация";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card">
+            <div class="card-header text-center">
+                <div class="dashboard-icon mx-auto"><i class="fas fa-user-plus"></i></div>
+                <h1 class="h4 mb-1">Регистрация пользователя</h1>
+                <p class="text-muted mb-0">Создайте учетную запись для работы с системой</p>
+            </div>
+            <div class="card-body">
+                <form asp-action="Register" method="post">
+                    <div asp-validation-summary="All" class="text-danger"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="FullName" class="form-label">ФИО</label>
+                        <input asp-for="FullName" class="form-control" placeholder="Иванов Иван Иванович" required />
+                        <span asp-validation-for="FullName" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Email" class="form-label">Email</label>
+                        <input asp-for="Email" class="form-control" placeholder="example@mail.ru" required />
+                        <span asp-validation-for="Email" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Password" class="form-label">Пароль</label>
+                        <input asp-for="Password" class="form-control" required />
+                        <span asp-validation-for="Password" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="ConfirmPassword" class="form-label">Подтверждение пароля</label>
+                        <input asp-for="ConfirmPassword" class="form-control" required />
+                        <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+                    </div>
+
+                    <div class="alert alert-info">
+                        Регистрация через эту форму доступна только для клиентов. Сотрудников добавляет администратор системы.
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100">Зарегистрироваться</button>
+                </form>
+
+                <hr />
+                <p class="text-center mb-0">
+                    Уже есть аккаунт? <a asp-action="Login">Войти</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>

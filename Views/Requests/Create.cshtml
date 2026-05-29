@@ -1,0 +1,213 @@
+﻿@model CustomerRequestPortal.Models.CustomerRequest
+@{
+    ViewData["Title"] = "Создать новую заявку";
+    var products = ViewBag.Products as List<CustomerRequestPortal.Models.Product>;
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="fas fa-exclamation-triangle"></i> @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fas fa-check-circle"></i> @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="card">
+    <div class="card-header">
+        <h3><i class="fas fa-plus-circle"></i> Создать новую заявку</h3>
+    </div>
+    <div class="card-body">
+        <form asp-action="Create" method="post">
+            <div class="row">
+                <div class="col-md-8 mb-3">
+                    <label asp-for="Title" class="form-label">Название заявки *</label>
+                    <input asp-for="Title" class="form-control" placeholder="Например: Закупка стройматериалов для объекта" required />
+                    <span asp-validation-for="Title" class="text-danger"></span>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label asp-for="Priority" class="form-label">Приоритет</label>
+                    <select asp-for="Priority" class="form-control">
+                        <option value="Низкий">🟢 Низкий</option>
+                        <option value="Средний" selected>🟡 Средний</option>
+                        <option value="Высокий">🔴 Высокий</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Description" class="form-label">Описание заявки</label>
+                <textarea asp-for="Description" class="form-control" rows="4" placeholder="Опишите, какие товары вам нужны..."></textarea>
+            </div>
+
+            <h5 class="mt-4 mb-3"><i class="fas fa-shopping-cart"></i> Товары в заявке</h5>
+
+            <div id="products-container">
+                <div class="product-row mb-3">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <select name="productIds" class="form-control product-select" required>
+                                <option value="">Выберите товар</option>
+                                @if (products != null)
+                                {
+                                    @foreach (var p in products.Where(p => p.IsActive))
+                                    {
+                                        <option value="@p.Id" data-price="@p.Price" data-stock="@p.StockQuantity">
+                                            @p.Name - @p.Price ₽/@p.Unit (остаток: @p.StockQuantity)
+                                        </option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <input type="number" name="quantities" class="form-control quantity-input" placeholder="Количество" min="1" value="1" required />
+                            <small class="text-muted max-stock">Макс: 0</small>
+                        </div>
+                        <div class="col-md-2">
+                            <button type="button" class="btn btn-danger btn-remove">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button type="button" class="btn btn-secondary mb-3" id="add-product">
+                <i class="fas fa-plus"></i> Добавить товар
+            </button>
+
+            <div class="alert alert-info mt-3">
+                <h5><i class="fas fa-calculator"></i> Итого: <span id="total-amount">0</span> ₽</h5>
+            </div>
+
+            <div class="mt-4">
+                <button type="submit" class="btn btn-primary btn-lg">
+                    <i class="fas fa-paper-plane"></i> Отправить заявку
+                </button>
+                <a asp-action="Index" class="btn btn-secondary btn-lg">
+                    <i class="fas fa-times"></i> Отмена
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Добавление нового товара
+        document.getElementById('add-product').addEventListener('click', function() {
+            const container = document.getElementById('products-container');
+            const newRow = document.createElement('div');
+            newRow.className = 'product-row mb-3';
+            newRow.innerHTML = `
+                <div class="row">
+                    <div class="col-md-6">
+                        <select name="productIds" class="form-control product-select" required>
+                            <option value="">Выберите товар</option>
+                            @if (products != null)
+                            {
+                                    @foreach (var p in products.Where(p => p.IsActive))
+                                    {
+                                            <option value="@p.Id" data-price="@p.Price" data-stock="@p.StockQuantity">
+                                                @p.Name - @p.Price ₽/@p.Unit (остаток: @p.StockQuantity)
+                                            </option>
+                                    }
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <input type="number" name="quantities" class="form-control quantity-input" placeholder="Количество" min="1" value="1" required />
+                        <small class="text-muted max-stock">Макс: 0</small>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="button" class="btn btn-danger btn-remove">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+            container.appendChild(newRow);
+
+            // Добавляем обработчики для новых элементов
+            const newSelect = newRow.querySelector('.product-select');
+            const newInput = newRow.querySelector('.quantity-input');
+            newSelect.addEventListener('change', function() {
+                updateMaxStock(this);
+                calculateTotal();
+            });
+            newInput.addEventListener('input', calculateTotal);
+        });
+
+        // Обновление максимального количества
+        function updateMaxStock(select) {
+            const row = select.closest('.product-row');
+            const quantityInput = row.querySelector('.quantity-input');
+            const maxStockLabel = row.querySelector('.max-stock');
+            const selectedOption = select.options[select.selectedIndex];
+
+            if (selectedOption.value) {
+                const maxStock = parseInt(selectedOption.dataset.stock);
+                quantityInput.max = maxStock;
+                maxStockLabel.textContent = `Макс: ${maxStock} шт.`;
+
+                if (parseInt(quantityInput.value) > maxStock) {
+                    quantityInput.value = maxStock;
+                }
+            }
+        }
+
+        // Удаление товара
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('.btn-remove')) {
+                const rows = document.querySelectorAll('.product-row');
+                if (rows.length > 1) {
+                    e.target.closest('.product-row').remove();
+                    calculateTotal();
+                } else {
+                    alert('Должен быть хотя бы один товар в заявке!');
+                }
+            }
+        });
+
+        // Расчёт общей суммы
+        function calculateTotal() {
+            let total = 0;
+            document.querySelectorAll('.product-row').forEach(row => {
+                const select = row.querySelector('.product-select');
+                const quantityInput = row.querySelector('.quantity-input');
+
+                if (select && quantityInput && select.value && quantityInput.value) {
+                    const price = parseFloat(select.options[select.selectedIndex].dataset.price);
+                    const quantity = parseInt(quantityInput.value);
+
+                    if (!isNaN(price) && !isNaN(quantity)) {
+                        total += price * quantity;
+                    }
+                }
+            });
+
+            document.getElementById('total-amount').textContent = total.toLocaleString('ru-RU');
+        }
+
+        // Инициализация при загрузке
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.product-select').forEach(select => {
+                select.addEventListener('change', function() {
+                    updateMaxStock(this);
+                    calculateTotal();
+                });
+            });
+
+            document.querySelectorAll('.quantity-input').forEach(input => {
+                input.addEventListener('input', calculateTotal);
+            });
+        });
+    </script>
+}

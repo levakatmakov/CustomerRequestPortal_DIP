@@ -1,0 +1,491 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - СтройСклад</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #24527a;
+            --secondary-color: #2f80b7;
+            --accent-color: #c7792f;
+            --surface-color: #ffffff;
+            --muted-surface: #f6f8fb;
+            --border-color: #dde5ee;
+            --text-color: #172033;
+            --muted-text: #64748b;
+        }
+
+        body {
+            background: #eef3f8;
+            color: var(--text-color);
+            min-height: 100vh;
+            font-size: 15px;
+        }
+
+        .navbar {
+            background: #173b5c !important;
+            box-shadow: 0 8px 24px rgba(15, 23, 42, 0.18);
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            letter-spacing: .2px;
+        }
+
+        .nav-link {
+            border-radius: 8px;
+        }
+
+        .nav-link:hover {
+            background: rgba(255, 255, 255, .1);
+        }
+
+        .card {
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            box-shadow: 0 8px 18px rgba(15, 23, 42, 0.06);
+        }
+
+        .card-header {
+            border-bottom: 1px solid var(--border-color);
+            background: #fff;
+            padding: 18px 20px;
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            border: none;
+            border-radius: 8px;
+        }
+
+        .btn-primary:hover {
+            background: #1d4568;
+        }
+
+        .btn {
+            border-radius: 8px;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .page-title {
+            margin: 0;
+            font-size: 1.65rem;
+            font-weight: 700;
+        }
+
+        .page-subtitle {
+            margin: 6px 0 0;
+            color: var(--muted-text);
+        }
+
+        .section-title {
+            margin: 0 0 14px;
+            font-size: 1rem;
+            font-weight: 700;
+            color: #24455f;
+        }
+
+        .info-list {
+            display: grid;
+            gap: 12px;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 18px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #edf1f5;
+        }
+
+        .info-row:last-child {
+            border-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .info-label {
+            color: var(--muted-text);
+        }
+
+        .info-value {
+            font-weight: 600;
+            text-align: right;
+        }
+
+        .stat-card {
+            color: #fff;
+            min-height: 118px;
+            border: 0;
+        }
+
+        .stat-card .card-body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .stat-label {
+            font-size: .9rem;
+            opacity: .88;
+        }
+
+        .stat-value {
+            font-size: 1.85rem;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+
+        .stat-card-blue {
+            background: #24527a;
+        }
+
+        .stat-card-info {
+            background: #2f80b7;
+        }
+
+        .stat-card-orange {
+            background: #b86b2d;
+        }
+
+        .stat-card-green {
+            background: #2f7a5b;
+        }
+
+        .stat-card-red {
+            background: #b93b3b;
+        }
+
+        .table {
+            margin-bottom: 0;
+        }
+
+        .table thead th {
+            color: var(--muted-text);
+            font-size: .78rem;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .table td,
+        .table th {
+            padding: 12px 14px;
+        }
+
+        .badge {
+            border-radius: 999px;
+            padding: .45rem .65rem;
+            font-weight: 600;
+        }
+
+        .analytics-progress {
+            height: 10px;
+            border-radius: 999px;
+        }
+
+        .bar-chart {
+            display: grid;
+            grid-template-columns: repeat(6, minmax(70px, 1fr));
+            gap: 16px;
+            align-items: end;
+            min-height: 270px;
+            overflow-x: auto;
+        }
+
+        .bar-chart-item {
+            min-width: 70px;
+            height: 240px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 6px;
+            text-align: center;
+        }
+
+        .bar-column {
+            width: 38px;
+            min-height: 8px;
+            border-radius: 8px 8px 0 0;
+            background: linear-gradient(180deg, #3182ce, #2c5282);
+        }
+
+        .bar-value {
+            font-size: .78rem;
+            font-weight: 600;
+            min-height: 32px;
+        }
+
+        .bar-label {
+            font-size: .82rem;
+            font-weight: 600;
+        }
+
+        .timeline {
+            position: relative;
+            padding-left: 24px;
+        }
+
+        .timeline::before {
+            content: "";
+            position: absolute;
+            top: 8px;
+            bottom: 8px;
+            left: 8px;
+            width: 2px;
+            background: #d6dee8;
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 16px;
+        }
+
+        .timeline-marker {
+            position: absolute;
+            left: -22px;
+            top: 6px;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: var(--secondary-color);
+            border: 3px solid #fff;
+            box-shadow: 0 0 0 2px #d6dee8;
+        }
+
+        .timeline-content {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 14px;
+        }
+
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 18px;
+        }
+
+        .product-card {
+            height: 100%;
+        }
+
+        .product-card .card-body {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .product-description {
+            min-height: 48px;
+        }
+
+        .product-price {
+            margin-top: auto;
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .dashboard-card {
+            height: 100%;
+            transition: transform .15s ease, box-shadow .15s ease;
+        }
+
+        .dashboard-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 14px 24px rgba(15, 23, 42, .1);
+        }
+
+        .dashboard-icon {
+            width: 48px;
+            height: 48px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            background: #e8f1f8;
+            color: var(--primary-color);
+            font-size: 1.35rem;
+            margin-bottom: 14px;
+        }
+
+        .request-hero {
+            background: #173b5c;
+            color: #fff;
+            border: 0;
+        }
+
+        .request-hero .text-muted {
+            color: rgba(255, 255, 255, .72) !important;
+        }
+
+        .request-total {
+            font-size: 1.9rem;
+            font-weight: 700;
+        }
+
+        .badge-status-new {
+            background-color: #d9ebfb;
+            color: #1f5f93;
+        }
+
+        .badge-status-work {
+            background-color: #fae7d4;
+            color: #8a4b16;
+        }
+
+        .badge-status-done {
+            background-color: #dcf4e7;
+            color: #246946;
+        }
+
+        .badge-status-rejected {
+            background-color: #f8dddd;
+            color: #8d2d2d;
+        }
+
+        footer {
+            color: var(--muted-text) !important;
+        }
+
+        @@media (max-width: 768px) {
+            .page-header {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .info-row {
+                flex-direction: column;
+                gap: 4px;
+            }
+
+            .info-value {
+                text-align: left;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-warehouse"></i> СтройСклад
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/"><i class="fas fa-home"></i> Главная</a>
+                    </li>
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="Requests" asp-action="Index">
+                                <i class="fas fa-clipboard-list"></i> Заявки
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="Products" asp-action="Catalog">
+                                <i class="fas fa-store"></i> Каталог
+                            </a>
+                        </li>
+                        @if (User.IsInRole(AppRoles.Customer))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Requests" asp-action="Create">
+                                    <i class="fas fa-plus-circle"></i> Создать заявку
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Notifications" asp-action="Index">
+                                    <i class="fas fa-bell"></i> Уведомления
+                                </a>
+                            </li>
+                        }
+                        @if (User.IsInRole(AppRoles.Dispatcher) || User.IsInRole(AppRoles.Administrator))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Analytics" asp-action="Index">
+                                    <i class="fas fa-chart-line"></i> Аналитика
+                                </a>
+                            </li>
+                        }
+                        @if (User.IsInRole(AppRoles.Administrator))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Products" asp-action="Index">
+                                    <i class="fas fa-box"></i> Товары
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Users" asp-action="Index">
+                                    <i class="fas fa-users-gear"></i> Пользователи
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Diagnostics" asp-action="Check">
+                                    <i class="fas fa-clipboard-check"></i> Логи
+                                </a>
+                            </li>
+                        }
+                    }
+                </ul>
+                <ul class="navbar-nav">
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        <li class="nav-item">
+                            <span class="nav-link">
+                                <i class="fas fa-user"></i> @User.Identity.Name
+                                (@(User.IsInRole(AppRoles.Administrator) ? "Администратор" : User.IsInRole(AppRoles.Dispatcher) ? "Диспетчер" : User.IsInRole(AppRoles.Executor) ? "Исполнитель" : "Клиент"))
+                            </span>
+                        </li>
+                        <li class="nav-item">
+                            <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                                <button type="submit" class="btn btn-outline-light btn-sm">
+                                    <i class="fas fa-sign-out-alt"></i> Выход
+                                </button>
+                            </form>
+                        </li>
+                    }
+                    else
+                    {
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="Account" asp-action="Login">Вход</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="Account" asp-action="Register">Регистрация</a>
+                        </li>
+                    }
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        @RenderBody()
+    </div>
+
+    <footer class="text-center text-white py-3 mt-5">
+        <p>&copy; 2026 СтройСклад. Система управления заявками.</p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

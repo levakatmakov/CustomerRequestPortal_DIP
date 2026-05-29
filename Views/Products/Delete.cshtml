@@ -1,0 +1,57 @@
+﻿@model CustomerRequestPortal.Models.Product
+@{
+    ViewData["Title"] = "Удаление товара";
+}
+
+<div class="card">
+    <div class="card-header bg-danger text-white">
+        <h3><i class="fas fa-trash"></i> Удаление товара</h3>
+    </div>
+    <div class="card-body">
+        <div class="alert alert-warning">
+            <i class="fas fa-exclamation-triangle"></i>
+            <strong>Внимание!</strong> Вы уверены, что хотите удалить этот товар? Это действие нельзя отменить.
+        </div>
+
+        <dl class="row">
+            <dt class="col-sm-3">Название</dt>
+            <dd class="col-sm-9">@Model.Name</dd>
+
+            <dt class="col-sm-3">Категория</dt>
+            <dd class="col-sm-9">@Model.Category</dd>
+
+            <dt class="col-sm-3">Цена</dt>
+            <dd class="col-sm-9">@Model.Price.ToString("N2") ₽</dd>
+
+            <dt class="col-sm-3">Единица измерения</dt>
+            <dd class="col-sm-9">@Model.Unit</dd>
+
+            <dt class="col-sm-3">Остаток на складе</dt>
+            <dd class="col-sm-9">@Model.StockQuantity @Model.Unit</dd>
+
+            <dt class="col-sm-3">Статус</dt>
+            <dd class="col-sm-9">
+                @if (Model.IsActive)
+                {
+                    <span class="badge bg-success">Активен</span>
+                }
+                else
+                {
+                    <span class="badge bg-danger">Неактивен</span>
+                }
+            </dd>
+        </dl>
+
+        <form asp-action="Delete" method="post">
+            <input type="hidden" asp-for="Id" />
+            <div class="mt-4">
+                <button type="submit" class="btn btn-danger btn-lg">
+                    <i class="fas fa-trash"></i> Удалить товар
+                </button>
+                <a asp-action="Index" class="btn btn-secondary btn-lg">
+                    <i class="fas fa-times"></i> Отмена
+                </a>
+            </div>
+        </form>
+    </div>
+</div>

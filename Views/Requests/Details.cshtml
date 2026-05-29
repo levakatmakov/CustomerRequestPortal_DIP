@@ -1,0 +1,311 @@
+@model CustomerRequestPortal.Models.CustomerRequest
+@{
+    ViewData["Title"] = "Заявка №" + Model.RequestNumber;
+    var executors = ViewBag.Executors as IList<ApplicationUser> ?? new List<ApplicationUser>();
+    var isDispatcher = User.IsInRole(AppRoles.Dispatcher) || User.IsInRole(AppRoles.Administrator);
+    var isExecutor = User.IsInRole(AppRoles.Executor);
+    var canAssign = isDispatcher && Model.Status == "Новая" && string.IsNullOrEmpty(Model.AssignedExecutorId);
+    var canCompletePickup = Model.Status == "Готов к отгрузке" &&
+        (User.IsInRole(AppRoles.Customer) || User.IsInRole(AppRoles.Dispatcher) || User.IsInRole(AppRoles.Administrator));
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="fas fa-exclamation-triangle"></i> @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="card request-hero mb-4">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+            <div>
+                <div class="text-muted mb-1">Заявка</div>
+                <h1 class="h3 mb-2">@Model.RequestNumber</h1>
+                <div class="h5 mb-0">@Model.Title</div>
+            </div>
+            <div class="text-md-end">
+                <div class="request-total">@Model.TotalAmount.ToString("N2") ₽</div>
+                <div class="text-muted">Создана @Model.CreatedAt.ToString("dd.MM.yyyy HH:mm")</div>
+            </div>
+        </div>
+        <div class="d-flex gap-2 flex-wrap mt-4">
+            @if (Model.Status == "Новая")
+            {
+                <span class="badge badge-status-new">Новая</span>
+            }
+            else if (Model.Status == "Назначена" || Model.Status == "Подтверждено наличие" || Model.Status == "Комплектуется")
+            {
+                <span class="badge badge-status-work">@Model.Status</span>
+            }
+            else if (Model.Status == "Готов к отгрузке" || Model.Status == "Завершена")
+            {
+                <span class="badge badge-status-done">@Model.Status</span>
+            }
+            else
+            {
+                <span class="badge badge-status-rejected">Отклонена</span>
+            }
+            <span class="badge bg-light text-dark border">Приоритет: @Model.Priority</span>
+            @if (Model.CompletedAt.HasValue)
+            {
+                <span class="badge bg-light text-dark border">Завершена: @Model.CompletedAt.Value.ToString("dd.MM.yyyy HH:mm")</span>
+            }
+            @if (Model.DueDate.HasValue)
+            {
+                <span class="badge bg-light text-dark border">Срок: @Model.DueDate.Value.ToString("dd.MM.yyyy")</span>
+            }
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-5">
+        <div class="card h-100">
+            <div class="card-body">
+                <h2 class="section-title"><i class="fas fa-circle-info"></i> Информация</h2>
+                <div class="info-list">
+                    <div class="info-row">
+                        <span class="info-label">Название</span>
+                        <span class="info-value">@Model.Title</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Статус</span>
+                        <span class="info-value">@Model.Status</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Приоритет</span>
+                        <span class="info-value">@Model.Priority</span>
+                    </div>
+                    @if (isDispatcher || isExecutor)
+                    {
+                        <div class="info-row">
+                            <span class="info-label">Клиент</span>
+                            <span class="info-value">@Model.User?.FullName</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Email</span>
+                            <span class="info-value">@Model.User?.Email</span>
+                        </div>
+                    }
+                    <div class="info-row">
+                        <span class="info-label">Исполнитель</span>
+                        <span class="info-value">@(Model.AssignedExecutor?.FullName ?? "Не назначен")</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Должность</span>
+                        <span class="info-value">@(Model.AssignedExecutor?.StaffPosition ?? "-")</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Срок исполнения</span>
+                        <span class="info-value">@(Model.DueDate.HasValue ? Model.DueDate.Value.ToString("dd.MM.yyyy") : "Не указан")</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-7">
+        <div class="card h-100">
+            <div class="card-body">
+                <h2 class="section-title"><i class="fas fa-boxes-stacked"></i> Состав заявки</h2>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                            <tr>
+                                <th>Товар</th>
+                                <th>Количество</th>
+                                <th>Цена</th>
+                                <th>Сумма</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.Items)
+                            {
+                                <tr>
+                                    <td>@item.Product?.Name</td>
+                                    <td>@item.Quantity @item.Product?.Unit</td>
+                                    <td>@item.Price.ToString("N2") ₽</td>
+                                    <td><strong>@item.Total.ToString("N2") ₽</strong></td>
+                                </tr>
+                            }
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <th colspan="3">Итого</th>
+                                <th>@Model.TotalAmount.ToString("N2") ₽</th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mt-1">
+    <div class="col-lg-7">
+        <div class="card h-100">
+            <div class="card-body">
+                <h2 class="section-title"><i class="fas fa-align-left"></i> Описание и комментарии</h2>
+                <div class="mb-4">
+                    <div class="text-muted mb-1">Описание клиента</div>
+                    <div class="p-3 bg-light border rounded">@(string.IsNullOrWhiteSpace(Model.Description) ? "Описание не указано." : Model.Description)</div>
+                </div>
+                <div>
+                    <div class="text-muted mb-1">Комментарий по обработке</div>
+                    <div class="p-3 bg-light border rounded">@(string.IsNullOrWhiteSpace(Model.ManagerComment) ? "Комментарий пока не добавлен." : Model.ManagerComment)</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        @if (canAssign)
+        {
+            <div class="card h-100">
+                <div class="card-body">
+                    <h2 class="section-title"><i class="fas fa-user-check"></i> Назначение исполнителя</h2>
+                    <form asp-action="AssignExecutor" method="post">
+                        <input type="hidden" name="id" value="@Model.Id" />
+                        <div class="mb-3">
+                            <label class="form-label">Исполнитель</label>
+                            <select name="executorId" class="form-select" required>
+                                <option value="">Выберите исполнителя</option>
+                                @foreach (var executor in executors)
+                                {
+                                    <option value="@executor.Id" selected="@(Model.AssignedExecutorId == executor.Id)">
+                                        @executor.FullName (@executor.StaffPosition)
+                                    </option>
+                                }
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Срок исполнения</label>
+                            <input type="date" name="dueDate" class="form-control" value="@(Model.DueDate?.ToString("yyyy-MM-dd"))" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Комментарий диспетчера</label>
+                            <textarea name="comment" class="form-control" rows="3" placeholder="Например: заявка передана кладовщику">@Model.ManagerComment</textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Назначить исполнителя</button>
+                    </form>
+                </div>
+            </div>
+        }
+        else if (isDispatcher && !canAssign)
+        {
+            <div class="card h-100">
+                <div class="card-body">
+                    <h2 class="section-title"><i class="fas fa-lock"></i> Назначение исполнителя</h2>
+                    <div class="alert alert-light border mb-0">
+                        Исполнитель уже назначен. Повторное назначение после статуса “Назначена” недоступно.
+                    </div>
+                </div>
+            </div>
+        }
+        else if (isExecutor)
+        {
+            <div class="card h-100">
+                <div class="card-body">
+                    <h2 class="section-title"><i class="fas fa-truck-ramp-box"></i> Работа исполнителя</h2>
+                    <form asp-action="UpdateExecutorStatus" method="post">
+                        <input type="hidden" name="id" value="@Model.Id" />
+                        <div class="mb-3">
+                            <label class="form-label">Статус</label>
+                            <select name="status" class="form-select">
+                                <option value="Подтверждено наличие" selected="@(Model.Status == "Подтверждено наличие")">Подтверждено наличие</option>
+                                <option value="Комплектуется" selected="@(Model.Status == "Комплектуется")">Комплектуется</option>
+                                <option value="Готов к отгрузке" selected="@(Model.Status == "Готов к отгрузке")">Готов к отгрузке</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Комментарий исполнителя</label>
+                            <textarea name="comment" class="form-control" rows="3" placeholder="Например: товары проверены, заказ комплектуется">@Model.ManagerComment</textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Обновить статус</button>
+                    </form>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@if (canCompletePickup)
+{
+    <div class="card mt-4">
+        <div class="card-body">
+            <h2 class="section-title"><i class="fas fa-check-circle"></i> Получение заказа</h2>
+            <form asp-action="CompletePickup" method="post" class="row g-3 align-items-end">
+                <input type="hidden" name="id" value="@Model.Id" />
+                <div class="col-lg-8">
+                    <label class="form-label">Комментарий</label>
+                    <input type="text" name="comment" class="form-control" value="Клиент забрал заказ" />
+                </div>
+                <div class="col-lg-4">
+                    <button type="submit" class="btn btn-primary w-100">Завершить заявку</button>
+                </div>
+            </form>
+        </div>
+    </div>
+}
+
+<div class="card mt-4">
+    <div class="card-body">
+        <h2 class="section-title"><i class="fas fa-clock-rotate-left"></i> История обработки</h2>
+        @if (Model.StatusHistory.Any())
+        {
+            <div class="timeline">
+                @foreach (var history in Model.StatusHistory.OrderByDescending(h => h.ChangedAt))
+                {
+                    <div class="timeline-item">
+                        <div class="timeline-marker"></div>
+                        <div class="timeline-content">
+                            <div class="d-flex justify-content-between flex-wrap gap-2">
+                                <strong>
+                                    @if (string.IsNullOrEmpty(history.OldStatus))
+                                    {
+                                        <span>Создана заявка</span>
+                                    }
+                                    else
+                                    {
+                                        <span>@history.OldStatus -> @history.NewStatus</span>
+                                    }
+                                </strong>
+                                <span class="text-muted">@history.ChangedAt.ToString("dd.MM.yyyy HH:mm")</span>
+                            </div>
+                            <div class="text-muted">@(history.ChangedByUser?.FullName ?? "Система")</div>
+                            @if (!string.IsNullOrWhiteSpace(history.Comment))
+                            {
+                                <div class="mt-2">@history.Comment</div>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-light border mb-0">История обработки пока не заполнена.</div>
+        }
+    </div>
+</div>
+
+<div class="d-flex gap-2 flex-wrap mt-4">
+    <a asp-action="Index" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left"></i> Назад к списку
+    </a>
+    <a asp-action="Print" asp-route-id="@Model.Id" class="btn btn-primary" target="_blank">
+        <i class="fas fa-print"></i> Печать заявки
+    </a>
+    @if (User.IsInRole(AppRoles.Administrator))
+    {
+        <form asp-action="Delete" method="post" class="d-inline" onsubmit="return confirm('Удалить заявку @Model.RequestNumber?');">
+            <input type="hidden" name="id" value="@Model.Id" />
+            <button type="submit" class="btn btn-outline-danger">
+                <i class="fas fa-trash"></i> Удалить заявку
+            </button>
+        </form>
+    }
+</div>
