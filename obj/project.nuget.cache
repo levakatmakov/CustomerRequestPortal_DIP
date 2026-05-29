@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "OQOXatlC93M=",
+  "dgSpecHash": "snTFf98V8HM=",
   "success": true,
-  "projectFilePath": "C:\\Users\\Levchik\\OneDrive\\Desktop\\CustomerRequestPortal_DIP\\CustomerRequestPortal.csproj",
+  "projectFilePath": "C:\\Users\\Levchik\\OneDrive\\Desktop\\DIP\\CustomerRequestPortal_DIP\\CustomerRequestPortal.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Levchik\\.nuget\\packages\\humanizer.core\\2.14.1\\humanizer.core.2.14.1.nupkg.sha512",
     "C:\\Users\\Levchik\\.nuget\\packages\\microsoft.aspnetcore.identity.entityframeworkcore\\10.0.3\\microsoft.aspnetcore.identity.entityframeworkcore.10.0.3.nupkg.sha512",

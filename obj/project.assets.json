@@ -2662,11 +2662,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\Levchik\\OneDrive\\Desktop\\CustomerRequestPortal_DIP\\CustomerRequestPortal.csproj",
+      "projectUniqueName": "C:\\Users\\Levchik\\OneDrive\\Desktop\\DIP\\CustomerRequestPortal_DIP\\CustomerRequestPortal.csproj",
       "projectName": "CustomerRequestPortal",
-      "projectPath": "C:\\Users\\Levchik\\OneDrive\\Desktop\\CustomerRequestPortal_DIP\\CustomerRequestPortal.csproj",
+      "projectPath": "C:\\Users\\Levchik\\OneDrive\\Desktop\\DIP\\CustomerRequestPortal_DIP\\CustomerRequestPortal.csproj",
       "packagesPath": "C:\\Users\\Levchik\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\Levchik\\OneDrive\\Desktop\\CustomerRequestPortal_DIP\\obj\\",
+      "outputPath": "C:\\Users\\Levchik\\OneDrive\\Desktop\\DIP\\CustomerRequestPortal_DIP\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
