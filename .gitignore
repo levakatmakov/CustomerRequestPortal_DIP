@@ -8,3 +8,4 @@ obj/
 *.db-journal
 TestResults/
 *.log
+*.db
